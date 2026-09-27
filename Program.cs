@@ -1,14 +1,14 @@
-using alg_cs_labs.FirstSetup;
+using alg_cs_labs.Lb1;
 using alg_cs_labs.Lb2;
 
 while (true)
 {
-    Console.WriteLine("1 - Factorial (FirstSetupCpp)");
+    Console.WriteLine("1 - Factorial (Lb1)");
     Console.WriteLine("2 - Variant 17 calculation (Lb2)");
     Console.WriteLine("0 - Exit");
     Console.Write("Select module: ");
 
-    switch (Console.ReadLine())
+    switch (Console.ReadLine()?.Trim())
     {
         case "0":
             return;
