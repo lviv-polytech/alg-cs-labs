@@ -6,13 +6,14 @@
         <RootNamespace>alg_cs_labs</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <DefaultItemExcludes>$(DefaultItemExcludes);CommonUtils/**;Lb1/**;Lb2/**;Lb1.Tests/**;Lb2.Tests/**</DefaultItemExcludes>
+        <DefaultItemExcludes>$(DefaultItemExcludes);CommonUtils/**;Lb1/**;Lb2/**;Lb3/**;Lb1.Tests/**;Lb2.Tests/**;Lb3.Tests/**</DefaultItemExcludes>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="CommonUtils\CommonUtils.csproj" />
         <ProjectReference Include="Lb1\Lb1.csproj" />
         <ProjectReference Include="Lb2\Lb2.csproj" />
+        <ProjectReference Include="Lb3\Lb3.csproj" />
     </ItemGroup>
 
 </Project>
