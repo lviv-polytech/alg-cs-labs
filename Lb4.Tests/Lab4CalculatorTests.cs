@@ -75,3 +75,77 @@ public class Lab4CalculatorTests
         Assert.InRange(Math.Abs(result.While - result.ForDecreasing), 0, 1e-9);
     }
 }
+
+public class TargetCalculatorTests
+{
+    private readonly Lpnu.Lb4.Core.ITargetCalculator _target = TargetCalculatorFactory.CreateTargetCalculator();
+
+    [Theory]
+    [InlineData(2, -1, 1, true)]      // Part A: center
+    [InlineData(2, -2, 2, true)]      // Part A: corner at boundary
+    [InlineData(2, -2, 0, true)]      // Part A: left edge
+    [InlineData(2, 0, 0, true)]       // Origin: boundary point
+    [InlineData(2, 1, -1, true)]      // Part B: center
+    [InlineData(2, 2, -2, true)]      // Part B: corner at boundary
+    [InlineData(2, 2, 0, true)]       // Part B: right edge
+    [InlineData(2, -0.1, 1.9, false)] // Outside arc in Part A
+    [InlineData(2, 0.1, -1.9, false)] // Outside arc in Part B
+    [InlineData(2, -3, 1, false)]     // Left of Part A bound (x < -R)
+    [InlineData(2, 1, 1, false)]      // Wrong quadrant (positive y in right half)
+    [InlineData(2, -1, -1, false)]    // Wrong quadrant (negative y in left half)
+    public void InTargetReturnsCorrectResultForTestCases(double radius, double x, double y, bool expected)
+    {
+        Assert.Equal(expected, _target.InTarget(x, y, radius));
+    }
+
+    [Fact]
+    public void GenerateRandomShotReturnsCoordinatesWithinBounds()
+    {
+        var radius = 3.5;
+        for (int i = 0; i < 100; i++)
+        {
+            var (x, y) = _target.GenerateRandomShot(radius);
+            Assert.InRange(x, -radius, radius);
+            Assert.InRange(y, -radius, radius);
+        }
+    }
+
+    [Fact]
+    public void PartABoundaryConditionsHold()
+    {
+        var radius = 1.0;
+        // Boundary: x = -R, y = 0
+        Assert.True(_target.InTarget(-1, 0, radius));
+        // Boundary: x = 0, y = 0
+        Assert.True(_target.InTarget(0, 0, radius));
+        // Boundary: x = -R, y = R
+        Assert.True(_target.InTarget(-1, 1, radius));
+        // Outside left
+        Assert.False(_target.InTarget(-1.1, 0.5, radius));
+    }
+
+    [Fact]
+    public void PartBBoundaryConditionsHold()
+    {
+        var radius = 1.0;
+        // Boundary: x = R, y = 0
+        Assert.True(_target.InTarget(1, 0, radius));
+        // Boundary: x = 0, y = 0
+        Assert.True(_target.InTarget(0, 0, radius));
+        // Boundary: x = R, y = -R
+        Assert.True(_target.InTarget(1, -1, radius));
+        // Outside right
+        Assert.False(_target.InTarget(1.1, -0.5, radius));
+    }
+
+    [Theory]
+    [InlineData(0.1)]
+    [InlineData(0.5)]
+    [InlineData(1.0)]
+    [InlineData(2.5)]
+    [InlineData(10.0)]
+    public void OriginIsAlwaysInTarget(double radius)
+    {
+        Assert.True(_target.InTarget(0, 0, radius));
+    }
+}

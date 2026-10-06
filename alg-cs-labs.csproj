@@ -20,4 +20,8 @@
         <ProjectReference Include="Lb7\Lb7.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include=".local\tasks\" />
+    </ItemGroup>
+
 </Project>
