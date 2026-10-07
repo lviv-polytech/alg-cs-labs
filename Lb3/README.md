@@ -2,7 +2,7 @@
 
 ## 1. Task Description
 
-The objective of Laboratory Work 3 is to master algorithmic branching constructs in C#. The assignment consists of three distinct sub-tasks unified in a modular console application.
+The objective of Laboratory Work 3 is to master algorithmic branching constructs in C#. The assignment consists of four distinct sub-tasks unified in a modular console application.
 
 ---
 
@@ -43,6 +43,30 @@ $$y = \begin{cases} 1, & x \le -1 - R \\ -\sqrt{R^2 - (x + 1)^2}, & -1 - R < x \
 
 ---
 
+### Task 3.4: Target Region Hit Detection
+
+Determines whether a point with user-entered coordinates $(x, y)$ falls within the shaded gray geometric target region on the Cartesian plane for radius parameter $R > 0$. The results are displayed as a descriptive textual message.
+
+$$S = S_1 \cup S_2$$
+
+#### Geometric Analysis:
+- **Region 1 ($S_1$, Quadrant II — Upper-Left Arc Sector):**
+  - Bounded on the left by the vertical line segment $x = -R$ for $0 \le y \le R$.
+  - Bounded on the bottom by the X-axis segment $y = 0$ for $-R \le x \le 0$.
+  - Bounded on the right and top by the circular arc of radius $R$ centered at $(-R, 0)$, defined by $(x + R)^2 + y^2 \le R^2$.
+  - Compound predicate:
+    $$-R \le x \le 0 \quad \land \quad y \ge 0 \quad \land \quad (x + R)^2 + y^2 \le R^2$$
+- **Region 2 ($S_2$, Quadrant IV — Lower-Right Arc Sector):**
+  - Symmetrically opposite to $S_1$ relative to the origin $(0, 0)$.
+  - Bounded on the top by the X-axis segment $y = 0$ for $0 \le x \le R$.
+  - Bounded on the right by the vertical line segment $x = R$ for $-R \le y \le 0$.
+  - Bounded on the left and bottom by the circular arc of radius $R$ centered at $(R, 0)$, defined by $(x - R)^2 + y^2 \le R^2$.
+  - Compound predicate:
+    $$0 \le x \le R \quad \land \quad y \le 0 \quad \land \quad (x - R)^2 + y^2 \le R^2$$
+- **Boundary points:** Points lying exactly on the circular arcs, line segments, and the coordinate origin $(0, 0)$ are included in the target region.
+
+---
+
 ## 2. Execution Guide
 
 Execute commands from the repository root using the .NET CLI:
@@ -70,7 +94,7 @@ dotnet test Lb3.Tests/Lb3.Tests.csproj
 
 ```mermaid
 flowchart TD
-    Start(["Start Lab 3"]) --> Select["Select Task: 1 (3.1), 2 (3.2), 3 (3.3), 4 (All), 0 (Exit)"]
+    Start(["Start Lab 3"]) --> Select["Select Task: 1 (3.1), 2 (3.2), 3 (3.3), 4 (3.4), 5 (All), 0 (Exit)"]
     Select --> ChoiceCheck{"Condition: (User selection)"}
     
     ChoiceCheck -- "1" --> T1["Read m, n"]
@@ -112,18 +136,28 @@ flowchart TD
     T3Y3 --> Print3
     T3Y4 --> Print3
 
+    ChoiceCheck -- "4" --> T4["Read x, y, R (R > 0)"]
+    T4 --> T4R1{"Condition: (-R <= x <= 0 and y >= 0 and (x+R)^2 + y^2 <= R^2?)"}
+    T4R1 -- "Yes" --> T4Hit1["Classify: Region 1 (Upper-Left)"]
+    T4R1 -- "No" --> T4R2{"Condition: (0 <= x <= R and y <= 0 and (x-R)^2 + y^2 <= R^2?)"}
+    T4R2 -- "Yes" --> T4Hit2["Classify: Region 2 (Lower-Right)"]
+    T4R2 -- "No" --> T4Miss["Classify: Outside target"]
+    T4Hit1 --> Print4["Display textual result message"] --> Select
+    T4Hit2 --> Print4
+    T4Miss --> Print4
+
     ChoiceCheck -- "0" --> Exit(["Exit"])
 ```
 
-### UML Activity Diagram (`stateDiagram-v2`)
-
+### UML Activity Diagram (`stateDiagram-v2`)\n
 ```mermaid
 stateDiagram-v2
     [*] --> MenuIdle
     MenuIdle --> Task31Executing : Select 1
     MenuIdle --> Task32Executing : Select 2
     MenuIdle --> Task33Executing : Select 3
-    MenuIdle --> RunAllExecuting : Select 4
+    MenuIdle --> Task34Executing : Select 4
+    MenuIdle --> RunAllExecuting : Select 5
     MenuIdle --> [*] : Select 0
 
     state Task31Executing {
@@ -148,9 +182,17 @@ stateDiagram-v2
         EvaluateGeometricBranch --> [*] : Return Task33Result
     }
 
+    state Task34Executing {
+        [*] --> ReadInputs34
+        ReadInputs34 --> EvaluateRegions : Input x, y, R > 0
+        EvaluateRegions --> DetermineHitZone : Check S1 and S2 inequalities
+        DetermineHitZone --> [*] : Return Task34Result
+    }
+
     Task31Executing --> MenuIdle : Complete
     Task32Executing --> MenuIdle : Complete
     Task33Executing --> MenuIdle : Complete
+    Task34Executing --> MenuIdle : Complete
     RunAllExecuting --> MenuIdle : Complete
 ```
 
@@ -173,6 +215,21 @@ classDiagram
     class ITask33Calculator {
         <<interface>>
         +Calculate(double x, double r) Task33Result
+    }
+
+    class ITask34Calculator {
+        <<interface>>
+        +Calculate(double x, double y, double r) Task34Result
+        +IsInRegion1(double x, double y, double r) bool
+        +IsInRegion2(double x, double y, double r) bool
+    }
+
+    class HitZone {
+        <<enumeration>>
+        Outside
+        Region1UpperLeft
+        Region2LowerRight
+        Origin
     }
 
     class Task31Result {
@@ -202,6 +259,16 @@ classDiagram
         +string IntervalDescription
     }
 
+    class Task34Result {
+        <<struct>>
+        +double X
+        +double Y
+        +double R
+        +bool IsHit
+        +HitZone Zone
+        +string Message
+    }
+
     class Task31Calculator {
         +Calculate(double m, double n) Task31Result
     }
@@ -216,33 +283,50 @@ classDiagram
         +Calculate(double x, double r) Task33Result
     }
 
+    class Task34Calculator {
+        +Calculate(double x, double y, double r) Task34Result
+        +IsInRegion1(double x, double y, double r) bool
+        +IsInRegion2(double x, double y, double r) bool
+    }
+
     class Lb3ServiceFactory {
         +CreateTask31Calculator() ITask31Calculator
         +CreateTask32Calculator() ITask32Calculator
         +CreateTask33Calculator() ITask33Calculator
+        +CreateTask34Calculator() ITask34Calculator
     }
 
     class Lb3App {
         -ITask31Calculator _task31Calculator
         -ITask32Calculator _task32Calculator
         -ITask33Calculator _task33Calculator
+        -ITask34Calculator _task34Calculator
         -IConsoleInputReader _inputReader
         +Run() void
+        +RunTask31() void
+        +RunTask32() void
+        +RunTask33() void
+        +RunTask34() void
     }
 
     ITask31Calculator <|.. Task31Calculator : implements
     ITask32Calculator <|.. Task32Calculator : implements
     ITask33Calculator <|.. Task33Calculator : implements
+    ITask34Calculator <|.. Task34Calculator : implements
 
     ITask31Calculator --> Task31Result : returns
     ITask32Calculator --> Task32Result : returns
     ITask33Calculator --> Task33Result : returns
+    ITask34Calculator --> Task34Result : returns
+    Task34Result --> HitZone : contains
 
     Lb3ServiceFactory ..> ITask31Calculator : creates
     Lb3ServiceFactory ..> ITask32Calculator : creates
     Lb3ServiceFactory ..> ITask33Calculator : creates
+    Lb3ServiceFactory ..> ITask34Calculator : creates
 
     Lb3App --> ITask31Calculator : uses
     Lb3App --> ITask32Calculator : uses
     Lb3App --> ITask33Calculator : uses
+    Lb3App --> ITask34Calculator : uses
 ```

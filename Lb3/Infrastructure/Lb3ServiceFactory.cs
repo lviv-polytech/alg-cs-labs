@@ -22,4 +22,9 @@ public static class Lb3ServiceFactory
     /// Creates a new instance of <see cref="ITask33Calculator"/>.
     /// </summary>
     public static ITask33Calculator CreateTask33Calculator() => new Task33Calculator();
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ITask34Calculator"/>.
+    /// </summary>
+    public static ITask34Calculator CreateTask34Calculator() => new Task34Calculator();
 }
