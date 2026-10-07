@@ -15,7 +15,8 @@ The repository is structured into modular, isolated projects:
   * **Task 3.1:** Single-variable piecewise function $Y = m^2 + 1 + \Phi(m)$.
   * **Task 3.2:** Parameterized branching function $F(x)$ implemented in two forms (short-form `if` vs full-form `if-else`).
   * **Task 3.3:** Graph-based piecewise function $y(x, R)$ evaluating 4 geometric segments.
-* **`Lb3.Tests`:** xUnit test suite for `Lb3` validating all interval branches, transition points, edge cases, and equivalence between short and full branching forms.
+  * **Task 3.4:** Target region hit detection determining whether point $(x, y)$ falls into the shaded two-segment circular arc area for radius $R > 0$.
+* **`Lb3.Tests`:** xUnit test suite for `Lb3` validating all interval branches, transition points, edge cases, target hit boundaries, and equivalence between short and full branching forms.
 * **`alg-cs-labs`:** Root console orchestrator offering an interactive menu to launch any lab module.
 
 ---
@@ -71,7 +72,7 @@ All commands can be executed from the solution root using the .NET CLI:
   ```sh
   dotnet run --project Lb2/Lb2.csproj
   ```
-* **Run Lab 3 (Branching Algorithms - Tasks 3.1, 3.2, 3.3):**
+* **Run Lab 3 (Branching Algorithms - Tasks 3.1, 3.2, 3.3, 3.4):**
   ```sh
   dotnet run --project Lb3/Lb3.csproj
   ```
