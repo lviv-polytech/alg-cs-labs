@@ -69,4 +69,21 @@ public class Lb3AppTests
         Assert.Contains("Interval: Interval 4", output);
         Assert.Contains("y = 0.000000", output);
     }
+
+    [Fact]
+    public void RunTask34_ComputesAndDisplaysHitResult()
+    {
+        using var reader = new StringReader("-1\n0.5\n2\n");
+        using var writer = new StringWriter();
+        var inputReader = new ConsoleInputReader(reader, writer);
+        var app = new Lb3App(inputReader: inputReader, output: writer);
+
+        app.RunTask34();
+        var output = writer.ToString();
+
+        Assert.Contains("--- Task 3.4: Target Region Hit Detection ---", output);
+        Assert.Contains("Hit detected: True", output);
+        Assert.Contains("Target zone: Region1UpperLeft", output);
+        Assert.Contains("Quadrant II", output);
+    }
 }
