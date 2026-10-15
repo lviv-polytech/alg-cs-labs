@@ -10,21 +10,23 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
     /// is not divisible by five. Thus only nonmultiples of six at indices 0,5,10,...
     /// are excluded.
     /// </summary>
-    public bool IsSelected(int value, int index) => value % 6 == 0 || index % 5 != 0;
+    public bool IsSelected(int value, int index) => Task1Iterative.IsSelected(value, index);
 
     /// <summary>Counts and sums values selected by the Lab 6.1 predicate.</summary>
     public (int Count, int Sum) AnalyzeSelected(int[] values, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(values);
-        return recursive ? AnalyzeSelectedRecursive(values, 0) : AnalyzeSelectedIterative(values);
+        return recursive
+            ? (Task1Recursive.CountElementsRec(values), Task1Recursive.SumElementsRec(values))
+            : (Task1Iterative.CountElements(values), Task1Iterative.SumElements(values));
     }
 
     /// <summary>Replaces all selected values with zero, preserving all other elements.</summary>
     public void ZeroSelected(int[] values, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(values);
-        if (recursive) ZeroSelectedRecursive(values, 0);
-        else for (var i = 0; i < values.Length; i++) if (IsSelected(values[i], i)) values[i] = 0;
+        if (recursive) Task1Recursive.ZeroElementsRec(values);
+        else Task1Iterative.ZeroElements(values);
     }
 
     /// <summary>
@@ -100,27 +102,6 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
             foreach (var value in values) if (value >= 2) output[second++] = value;
         }
         Array.Copy(output, values, values.Length);
-    }
-
-    private (int Count, int Sum) AnalyzeSelectedIterative(int[] values)
-    {
-        var count = 0; var sum = 0;
-        for (var i = 0; i < values.Length; i++) if (IsSelected(values[i], i)) { count++; sum += values[i]; }
-        return (count, sum);
-    }
-
-    private (int Count, int Sum) AnalyzeSelectedRecursive(int[] values, int i)
-    {
-        if (i == values.Length) return (0, 0);
-        var rest = AnalyzeSelectedRecursive(values, i + 1);
-        return IsSelected(values[i], i) ? (rest.Count + 1, rest.Sum + values[i]) : rest;
-    }
-
-    private void ZeroSelectedRecursive(int[] values, int i)
-    {
-        if (i == values.Length) return;
-        if (IsSelected(values[i], i)) values[i] = 0;
-        ZeroSelectedRecursive(values, i + 1);
     }
 
     private static int FindMaximumEvenIterative(int[] values)

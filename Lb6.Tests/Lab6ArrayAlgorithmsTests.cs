@@ -11,11 +11,27 @@ public class Lab6ArrayAlgorithmsTests
     [InlineData(true)]
     public void SelectionCountSumAndZeroingMatchReference(bool recursive)
     {
-        var values = new[] { 7, 12, 25, 31, 44, 9, 18, 50, 61, 5, 30, 73, 4, 66, 27, 35, 48, 13, 59, 70, 8, 42, 16, 37, 55 };
+        var values = new[]
+        {
+            12, 10, 15, 20, 30,
+            25, 10, 15, 20, 30,
+            42, 10, 15, 20, 30,
+            19, 10, 15, 20, 30,
+            73, 10, 15, 20, 30
+        };
         var result = _algorithms.AnalyzeSelected(values, recursive);
-        Assert.Equal((21, 786), result);
+        Assert.Equal((22, 429), result);
         _algorithms.ZeroSelected(values, recursive);
-        Assert.Equal(new[] { 7, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35, 0, 0, 0, 0, 8, 0, 0, 0, 0 }, values);
+        Assert.Equal(25, values[5]);
+        Assert.Equal(19, values[15]);
+        Assert.Equal(73, values[20]);
+        for (var i = 0; i < values.Length; i++)
+        {
+            if (i != 5 && i != 15 && i != 20)
+            {
+                Assert.Equal(0, values[i]);
+            }
+        }
     }
 
     [Theory]

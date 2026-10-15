@@ -12,13 +12,38 @@ try
     {
         case "6.1":
         {
-            var random = new Random();
-            var values = Enumerable.Range(0, 25).Select(_ => random.Next(4, 74)).ToArray();
-            Console.WriteLine($"Initial: {string.Join(" ", values)}");
-            var result = algorithms.AnalyzeSelected(values, recursive);
-            algorithms.ZeroSelected(values, recursive);
-            Console.WriteLine($"count = {result.Count}; sum = {result.Sum}");
-            Console.WriteLine($"Modified: {string.Join(" ", values)}");
+            Console.WriteLine("=== Task 6.1: Array Selection (Variant 17) ===");
+            var values = new int[25];
+            if (recursive)
+            {
+                Console.WriteLine("[Recursive approach]");
+                Lpnu.Lb6.Task1Recursive.GenerateArrayRec(values, Lpnu.Lb6.Task1Recursive.DefaultLow, Lpnu.Lb6.Task1Recursive.DefaultHigh);
+                Console.WriteLine("Original array:");
+                Lpnu.Lb6.Task1Recursive.PrintArrayRec(values, Console.Out);
+
+                var count = Lpnu.Lb6.Task1Recursive.CountElementsRec(values);
+                var sum = Lpnu.Lb6.Task1Recursive.SumElementsRec(values);
+                Lpnu.Lb6.Task1Recursive.ZeroElementsRec(values);
+
+                Console.WriteLine($"count = {count}; sum = {sum}");
+                Console.WriteLine("Modified array (selected elements replaced by 0):");
+                Lpnu.Lb6.Task1Recursive.PrintArrayRec(values, Console.Out);
+            }
+            else
+            {
+                Console.WriteLine("[Iterative approach]");
+                Lpnu.Lb6.Task1Iterative.GenerateArray(values, Lpnu.Lb6.Task1Iterative.DefaultLow, Lpnu.Lb6.Task1Iterative.DefaultHigh);
+                Console.WriteLine("Original array:");
+                Lpnu.Lb6.Task1Iterative.PrintArray(values, Console.Out);
+
+                var count = Lpnu.Lb6.Task1Iterative.CountElements(values);
+                var sum = Lpnu.Lb6.Task1Iterative.SumElements(values);
+                Lpnu.Lb6.Task1Iterative.ZeroElements(values);
+
+                Console.WriteLine($"count = {count}; sum = {sum}");
+                Console.WriteLine("Modified array (selected elements replaced by 0):");
+                Lpnu.Lb6.Task1Iterative.PrintArray(values, Console.Out);
+            }
             break;
         }
         case "6.2":
