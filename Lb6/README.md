@@ -28,7 +28,18 @@ Modular .NET solution demonstrating one-dimensional array algorithms implemented
      - **Part B (Generic Functions):** Parametric polymorphism for generic type $T$ (`int`, `double`, `string`): `InputArrayTemplate<T>`, `PrintArrayTemplate<T>`, `FormatArrayTemplate<T>` in `Task3Iterative` and `Task3Recursive`.
    - **Deterministic Testing:** Decoupled stream reading using `StreamTokenReader` allowing automated Unit-testing over `StringReader`.
 
-4. **Task 6.4:** Dynamic array manipulation: positive count, sum after last zero, and stable partition around value $2.0$.
+4. **Task 6.4: Dynamic Real Array Analysis and In-Place Stable Partition**
+   - **Data Domain:** Dynamic array of $n$ double-precision floating-point numbers $a = (a_0, \dots, a_{n-1})$, $a_i \in \mathbb{R}$.
+   - **Calculations:**
+     - **1.1. Count Positive Elements:** $P(x) \iff x > 0.0$ (zero is strictly non-positive).
+     - **1.2. Sum After Last Zero:**
+       - Search for the last zero: $k^* = \max \{ i \in \{0, \dots, n - 1\} \mid |a_i| < 10^{-9} \}$ (searching right-to-left).
+       - Suffix sum strictly after $k^*$: $S = \sum_{j=k^*+1}^{n-1} a_j$.
+       - Returns $0.0$ if no zero exists ($k^* = -1$) or if the last zero is the final element ($k^* = n - 1$).
+   - **In-Place Stable Partition:**
+     - Predicate: Integer part $\operatorname{trunc}(x) \le 1 \iff x < 2.0$.
+     - Stable reordering preserving relative order using in-place cyclic shift with $O(1)$ auxiliary space (no secondary arrays).
+   - **Decomposition:** Pure static methods in `Task4Iterative` and `Task4Recursive` delegated by `ILab6ArrayAlgorithms` / `Lab6ArrayAlgorithms`.
 
 ## Execution Guide
 
@@ -51,96 +62,88 @@ dotnet test Lb6.Tests/Lb6.Tests.csproj
 
 ```mermaid
 flowchart TD
-    Start["Start Task 6.3: Stream Array Input & Print"] --> ChooseMode{"Choose Paradigm: Iterative or Recursive?"}
-    
-    ChooseMode -- "Iterative" --> ItLoop["For i = 0 to n - 1"]
-    ItLoop --> ItPrompt["Optional prompt: a[i] = "]
-    ItPrompt --> ItRead["Read token via StreamTokenReader.ReadNextToken"]
-    ItRead --> ItCheck{"i == n - 1?"}
-    ItCheck -- "No" --> ItLoop
-    ItCheck -- "Yes" --> ItPrint["Format print array elements with fixed width"]
-    
-    ChooseMode -- "Recursive" --> RecCall["Recursive step at index i (initial: 0)"]
-    RecCall --> BaseCase{"i >= n?"}
-    BaseCase -- "Yes" --> Terminate["Return (stop recursion)"]
-    BaseCase -- "No" --> RecPrompt["Optional prompt: a[i] = "]
-    RecPrompt --> RecRead["Read token via StreamTokenReader.ReadNextToken"]
-    RecRead --> RecNext["Recursive call for index i + 1"]
-    RecNext --> BaseCase
-    
-    ItPrint --> Finish["End"]
-    Terminate --> RecPrint["Format print array elements recursively"]
-    RecPrint --> Finish
+    Start["Start Task 6.4 Pipeline"] --> ReadN["Read size n and allocate array a[n]"]
+    ReadN --> InitArray["Populate array (Random or Input)"]
+    InitArray --> PrintInit["Formatted print of original array"]
+    PrintInit --> CountPos["Count positive elements: a[i] > 0.0"]
+    CountPos --> FindZero["Find last zero index k (right-to-left, |a[i]| < 1e-9)"]
+    FindZero --> CheckZero{"k >= 0 and k < n - 1?"}
+    CheckZero -- "Yes" --> SumSuffix["Compute sum of suffix: sum(a[k+1 .. n-1])"]
+    CheckZero -- "No" --> ZeroSum["Sum after last zero = 0.0"]
+    SumSuffix --> Partition["In-place stable partition: trunc(x) <= 1 first"]
+    ZeroSum --> Partition
+    Partition --> PrintMod["Formatted print of modified array"]
+    PrintMod --> Finish["End Task 6.4 Pipeline"]
 ```
 
 ### Activity / State Diagram (`stateDiagram-v2`)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Setup
-    Setup --> StreamInjection: "Inject TextReader (Console.In or StringReader)"
-    StreamInjection --> InputPhase
+    [*] --> Allocation
+    Allocation --> DataInitialization: "Generate or input n real elements"
+    DataInitialization --> DisplayInitial: "Formatted print to output"
+    DisplayInitial --> AnalysisPhase
     
-    state InputPhase {
-        [*] --> CheckBoundary: "Check index i < n"
-        CheckBoundary --> ReadToken: "StreamTokenReader extraction into a[i]"
-        ReadToken --> AdvanceIndex: "Increment index (loop or tail call)"
-        AdvanceIndex --> CheckBoundary
-        CheckBoundary --> [*]: "i >= n"
+    state AnalysisPhase {
+        [*] --> ComputePositive: "Count positive elements (x > 0.0)"
+        ComputePositive --> LocateLastZero: "Search for last zero (right-to-left)"
+        LocateLastZero --> ComputeSumAfter: "Sum suffix strictly after last zero"
+        ComputeSumAfter --> [*]
     }
     
-    InputPhase --> FormatPrintPhase: "Pass populated array to output formatter"
-    
-    state FormatPrintPhase {
-        [*] --> FormatElement: "PadLeft(fieldWidth, a[i])"
-        FormatElement --> NextPrint: "Advance to i + 1"
-        NextPrint --> FormatElement: "i < n"
-        NextPrint --> [*]: "i >= n -> return formatted string"
-    }
-    
-    FormatPrintPhase --> [*]
+    AnalysisPhase --> InPlacePartition: "Stable partition: shift elements with trunc(x) <= 1"
+    InPlacePartition --> DisplayModified: "Formatted print of partitioned array"
+    DisplayModified --> [*]
 ```
 
 ### Class Diagram (`classDiagram`)
 
 ```mermaid
 classDiagram
-    class StreamTokenReader {
-        +ReadNextToken(reader: TextReader) string
+    class Task4Iterative {
+        +IsZero(x: double, eps: double) bool
+        +HasIntPartAtMostOne(x: double) bool
+        +InitArray(array: double[], minVal: double, maxVal: double, random: Random) void
+        +PrintArray(array: double[], writer: TextWriter, fieldWidth: int, precision: int) void
+        +FormatArray(array: double[], fieldWidth: int, precision: int) string
+        +CountPositive(array: double[]) int
+        +FindLastZeroIndex(array: double[], eps: double) int
+        +SumAfterIndex(array: double[], startIndex: int) double
+        +SumAfterLastZero(array: double[], eps: double) double
+        +PartitionByIntPart(array: double[]) void
     }
 
-    class Task3Iterative {
-        +InputArray(array: int[], reader: TextReader, writer: TextWriter) void
-        +PrintArray(array: int[], writer: TextWriter, fieldWidth: int) void
-        +FormatArray(array: int[], fieldWidth: int) string
-        +InputArrayTemplate~T~(array: T[], reader: TextReader, parser: Func~string, T~, writer: TextWriter) void
-        +PrintArrayTemplate~T~(array: T[], writer: TextWriter, fieldWidth: int) void
-        +FormatArrayTemplate~T~(array: T[], fieldWidth: int) string
-    }
-
-    class Task3Recursive {
-        +InputArrayRec(array: int[], reader: TextReader, index: int, writer: TextWriter) void
-        +PrintArrayRec(array: int[], writer: TextWriter, index: int, fieldWidth: int) void
-        +FormatArrayRec(array: int[], index: int, fieldWidth: int) string
-        +InputArrayTemplateRec~T~(array: T[], reader: TextReader, parser: Func~string, T~, index: int, writer: TextWriter) void
-        +PrintArrayTemplateRec~T~(array: T[], writer: TextWriter, index: int, fieldWidth: int) void
-        +FormatArrayTemplateRec~T~(array: T[], index: int, fieldWidth: int) string
+    class Task4Recursive {
+        +IsZero(x: double, eps: double) bool
+        +HasIntPartAtMostOne(x: double) bool
+        +InitArrayRec(array: double[], minVal: double, maxVal: double, index: int, random: Random) void
+        +PrintArrayRec(array: double[], writer: TextWriter, fieldWidth: int, precision: int) void
+        +FormatArrayRec(array: double[], index: int, fieldWidth: int, precision: int) string
+        +CountPositiveRec(array: double[], index: int) int
+        +FindLastZeroIndexRec(array: double[], index: int, eps: double) int
+        +SumFromIndexRec(array: double[], index: int) double
+        +SumAfterLastZeroRec(array: double[], eps: double) double
+        +ShiftRightRec(array: double[], writePos: int, k: int) void
+        +PartitionByIntPartRec(array: double[], index: int, writePos: int) void
     }
 
     class ILab6ArrayAlgorithms {
         <<interface>>
-        +InputIntArray(values: int[], input: TextReader, output: TextWriter, recursive: bool) void
-        +InputGenericArray~T~(values: T[], input: TextReader, output: TextWriter, parser: Func~string, T~, recursive: bool) void
+        +CountPositive(values: double[], recursive: bool) int
+        +FindLastZeroIndex(values: double[], recursive: bool) int
+        +SumAfterIndex(values: double[], index: int, recursive: bool) double
+        +PartitionByIntegerPart(values: double[], recursive: bool) void
     }
 
     class Lab6ArrayAlgorithms {
-        +InputIntArray(values: int[], input: TextReader, output: TextWriter, recursive: bool) void
-        +InputGenericArray~T~(values: T[], input: TextReader, output: TextWriter, parser: Func~string, T~, recursive: bool) void
+        +CountPositive(values: double[], recursive: bool) int
+        +FindLastZeroIndex(values: double[], recursive: bool) int
+        +SumAfterIndex(values: double[], index: int, recursive: bool) double
+        +PartitionByIntegerPart(values: double[], recursive: bool) void
     }
 
     ILab6ArrayAlgorithms <|.. Lab6ArrayAlgorithms : implements
-    Lab6ArrayAlgorithms ..> Task3Iterative : delegates
-    Lab6ArrayAlgorithms ..> Task3Recursive : delegates
-    Task3Iterative ..> StreamTokenReader : uses
-    Task3Recursive ..> StreamTokenReader : uses
+    Lab6ArrayAlgorithms ..> Task4Iterative : delegates
+    Lab6ArrayAlgorithms ..> Task4Recursive : delegates
 ```

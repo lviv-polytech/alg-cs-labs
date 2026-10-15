@@ -66,15 +66,16 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
     public int CountPositive(double[] values, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(values);
-        return recursive ? CountPositiveRecursive(values, 0) : values.Count(value => value > 0);
+        return recursive ? Task4Recursive.CountPositiveRec(values) : Task4Iterative.CountPositive(values);
     }
 
-    /// <summary>Returns the last index exactly equal to zero, or -1 when no zero exists.</summary>
+    /// <summary>Returns the last index equal to zero within epsilon tolerance, or -1 when no zero exists.</summary>
     public int FindLastZeroIndex(double[] values, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(values);
-        return recursive ? FindLastZeroRecursive(values, values.Length - 1) :
-            Array.FindLastIndex(values, value => value == 0.0);
+        return recursive
+            ? Task4Recursive.FindLastZeroIndexRec(values, values.Length - 1)
+            : Task4Iterative.FindLastZeroIndex(values);
     }
 
     /// <summary>Sums elements strictly after the specified index.</summary>
@@ -82,47 +83,25 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
     {
         ArgumentNullException.ThrowIfNull(values);
         if (index < -1 || index >= values.Length) throw new ArgumentOutOfRangeException(nameof(index));
-        return recursive ? SumAfterRecursive(values, index + 1) : values.Skip(index + 1).Sum();
+        return recursive
+            ? Task4Recursive.SumFromIndexRec(values, index + 1)
+            : Task4Iterative.SumAfterIndex(values, index);
     }
 
     /// <summary>
     /// Stable-partitions in place by trunc(x)&lt;=1, equivalent for real values to x&lt;2.
-    /// The temporary storage preserves the original order within each partition.
+    /// Preserves original relative order with O(1) auxiliary space.
     /// </summary>
     public void PartitionByIntegerPart(double[] values, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(values);
-        var output = new double[values.Length];
-        if (recursive) PartitionRecursive(values, output, 0, 0, CountFirstGroup(values, 0));
+        if (recursive)
+        {
+            Task4Recursive.PartitionByIntPartRec(values);
+        }
         else
         {
-            var first = 0;
-            foreach (var value in values) if (value < 2) output[first++] = value;
-            var second = first;
-            foreach (var value in values) if (value >= 2) output[second++] = value;
+            Task4Iterative.PartitionByIntPart(values);
         }
-        Array.Copy(output, values, values.Length);
-    }
-
-
-
-    private static int CountPositiveRecursive(double[] values, int i) =>
-        i == values.Length ? 0 : (values[i] > 0 ? 1 : 0) + CountPositiveRecursive(values, i + 1);
-
-    private static int FindLastZeroRecursive(double[] values, int i) =>
-        i < 0 ? -1 : values[i] == 0.0 ? i : FindLastZeroRecursive(values, i - 1);
-
-    private static double SumAfterRecursive(double[] values, int i) =>
-        i >= values.Length ? 0 : values[i] + SumAfterRecursive(values, i + 1);
-
-    private static int CountFirstGroup(double[] values, int i) =>
-        i == values.Length ? 0 : (values[i] < 2 ? 1 : 0) + CountFirstGroup(values, i + 1);
-
-    private static void PartitionRecursive(double[] source, double[] target, int i, int firstPosition, int firstCount)
-    {
-        if (i == source.Length) return;
-        var position = source[i] < 2 ? firstPosition : firstCount + i - firstPosition;
-        target[position] = source[i];
-        PartitionRecursive(source, target, i + 1, firstPosition + (source[i] < 2 ? 1 : 0), firstCount);
     }
 }

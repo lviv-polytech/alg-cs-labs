@@ -1,4 +1,5 @@
 using System.Globalization;
+using Lpnu.Lb6;
 using Lpnu.Lb6.Infrastructure;
 
 var algorithms = Lab6ServiceFactory.CreateArrayAlgorithms();
@@ -127,17 +128,52 @@ try
         }
         case "6.4":
         {
+            Console.WriteLine("=== Task 6.4: Dynamic Real Array Analysis and In-Place Stable Partition ===");
             var n = ReadInt("Array size (>0): ");
             if (n <= 0) throw new ArgumentOutOfRangeException(nameof(n), "Array size must be positive.");
             var values = new double[n];
-            for (var i = 0; i < n; i++) values[i] = ReadDouble($"a[{i}]: ");
-            Console.WriteLine($"Initial: {Format(values)}");
-            Console.WriteLine($"Positive count: {algorithms.CountPositive(values, recursive)}");
-            var lastZero = algorithms.FindLastZeroIndex(values, recursive);
-            if (lastZero < 0) Console.WriteLine("There are no zero elements; the requested sum is undefined.");
-            else Console.WriteLine($"Sum after last zero (index {lastZero}): {algorithms.SumAfterIndex(values, lastZero, recursive):F2}");
-            algorithms.PartitionByIntegerPart(values, recursive);
-            Console.WriteLine($"Stable partition: {Format(values)}");
+            Console.Write("Initialize randomly [y/N]? ");
+            var genChoice = Console.ReadLine()?.Trim().ToLowerInvariant();
+            if (genChoice is "y" or "yes")
+            {
+                if (recursive) Task4Recursive.InitArrayRec(values);
+                else Task4Iterative.InitArray(values);
+            }
+            else
+            {
+                for (var i = 0; i < n; i++) values[i] = ReadDouble($"a[{i}]: ");
+            }
+
+            Console.WriteLine(recursive ? "[Recursive approach]" : "[Iterative approach]");
+            Console.WriteLine("Initial array:");
+            if (recursive) Task4Recursive.PrintArrayRec(values, Console.Out);
+            else Task4Iterative.PrintArray(values, Console.Out);
+
+            var positiveCount = recursive ? Task4Recursive.CountPositiveRec(values) : Task4Iterative.CountPositive(values);
+            Console.WriteLine($"Positive elements count: {positiveCount}");
+
+            var lastZero = recursive
+                ? Task4Recursive.FindLastZeroIndexRec(values, values.Length - 1)
+                : Task4Iterative.FindLastZeroIndex(values);
+
+            if (lastZero < 0)
+            {
+                Console.WriteLine("No zero elements found in array; sum after last zero is 0.00.");
+            }
+            else
+            {
+                var sumAfter = recursive
+                    ? Task4Recursive.SumFromIndexRec(values, lastZero + 1)
+                    : Task4Iterative.SumAfterIndex(values, lastZero);
+                Console.WriteLine($"Sum after last zero (at index {lastZero}): {sumAfter:F2}");
+            }
+
+            if (recursive) Task4Recursive.PartitionByIntPartRec(values);
+            else Task4Iterative.PartitionByIntPart(values);
+
+            Console.WriteLine("Modified array (stable partition: trunc(x) <= 1 first):");
+            if (recursive) Task4Recursive.PrintArrayRec(values, Console.Out);
+            else Task4Iterative.PrintArray(values, Console.Out);
             break;
         }
         default:
@@ -168,6 +204,3 @@ static double ReadDouble(string prompt)
         return value;
     throw new FormatException("Enter a finite number using '.' as the decimal separator.");
 }
-
-static string Format(IEnumerable<double> values) =>
-    string.Join(" ", values.Select(value => value.ToString("F2", CultureInfo.InvariantCulture)));
