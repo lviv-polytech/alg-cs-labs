@@ -78,18 +78,51 @@ try
         }
         case "6.3":
         {
+            Console.WriteLine("=== Task 6.3: Array Input via Ordinary and Generic Functions ===");
             var n = ReadInt("Array size (>0): ");
             if (n <= 0) throw new ArgumentOutOfRangeException(nameof(n), "Array size must be positive.");
             var integers = new int[n];
-            algorithms.InputIntArray(integers, Console.In, Console.Out, recursive);
-            Console.WriteLine($"int: {{{string.Join(", ", integers)}}}");
             var doubles = new double[n];
-            algorithms.InputGenericArray(doubles, Console.In, Console.Out,
-                text => double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture), recursive);
-            Console.WriteLine($"double: {{{string.Join(", ", doubles)}}}");
             var strings = new string[n];
-            algorithms.InputGenericArray(strings, Console.In, Console.Out, text => text, recursive);
-            Console.WriteLine($"string: {{{string.Join(", ", strings)}}}");
+
+            if (recursive)
+            {
+                Console.WriteLine("[Recursive approach]");
+                Console.WriteLine("Enter integer elements:");
+                Lpnu.Lb6.Task3Recursive.InputArrayRec(integers, Console.In, 0, Console.Out);
+                Console.WriteLine("Formatted integers:");
+                Lpnu.Lb6.Task3Recursive.PrintArrayRec(integers, Console.Out);
+
+                Console.WriteLine("Enter double elements:");
+                Lpnu.Lb6.Task3Recursive.InputArrayTemplateRec(doubles, Console.In,
+                    text => double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture), 0, Console.Out);
+                Console.WriteLine("Formatted doubles:");
+                Lpnu.Lb6.Task3Recursive.PrintArrayTemplateRec(doubles, Console.Out);
+
+                Console.WriteLine("Enter string elements:");
+                Lpnu.Lb6.Task3Recursive.InputArrayTemplateRec(strings, Console.In, text => text, 0, Console.Out);
+                Console.WriteLine("Formatted strings:");
+                Lpnu.Lb6.Task3Recursive.PrintArrayTemplateRec(strings, Console.Out);
+            }
+            else
+            {
+                Console.WriteLine("[Iterative approach]");
+                Console.WriteLine("Enter integer elements:");
+                Lpnu.Lb6.Task3Iterative.InputArray(integers, Console.In, Console.Out);
+                Console.WriteLine("Formatted integers:");
+                Lpnu.Lb6.Task3Iterative.PrintArray(integers, Console.Out);
+
+                Console.WriteLine("Enter double elements:");
+                Lpnu.Lb6.Task3Iterative.InputArrayTemplate(doubles, Console.In,
+                    text => double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture), Console.Out);
+                Console.WriteLine("Formatted doubles:");
+                Lpnu.Lb6.Task3Iterative.PrintArrayTemplate(doubles, Console.Out);
+
+                Console.WriteLine("Enter string elements:");
+                Lpnu.Lb6.Task3Iterative.InputArrayTemplate(strings, Console.In, text => text, Console.Out);
+                Console.WriteLine("Formatted strings:");
+                Lpnu.Lb6.Task3Iterative.PrintArrayTemplate(strings, Console.Out);
+            }
             break;
         }
         case "6.4":

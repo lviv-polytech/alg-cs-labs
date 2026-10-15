@@ -21,7 +21,13 @@ Modular .NET solution demonstrating one-dimensional array algorithms implemented
      - If duplicates of the maximum even value exist, returns the first occurrence (smallest index): $k^* = \min \{ i \in I_{\text{even}} \mid a_i = \max_{j \in I_{\text{even}}} a_j \}$.
    - **Decomposition (Single Responsibility):** Independent pure methods in `Task2Iterative` and `Task2Recursive` (`IsEven`, `InitArray`, `PrintArray`, `FindMaxEvenIndex` and recursive equivalents `InitArrayRec`, `PrintArrayRec`, `FindMaxEvenIndexRec`).
 
-3. **Task 6.3:** Ordinary and generic input handlers reading typed values from `TextReader`.
+3. **Task 6.3: Stream & Keyboard Array Input with Ordinary and Generic Functions**
+   - **Data Domain:** Sequential reading and formatted printing of 1D arrays of size $n$ from input streams (`TextReader`).
+   - **Dual Typification:**
+     - **Part A (Ordinary Functions):** Type-specialized for `int`: `InputArray`, `PrintArray`, `FormatArray` in `Task3Iterative` and `Task3Recursive`.
+     - **Part B (Generic Functions):** Parametric polymorphism for generic type $T$ (`int`, `double`, `string`): `InputArrayTemplate<T>`, `PrintArrayTemplate<T>`, `FormatArrayTemplate<T>` in `Task3Iterative` and `Task3Recursive`.
+   - **Deterministic Testing:** Decoupled stream reading using `StreamTokenReader` allowing automated Unit-testing over `StringReader`.
+
 4. **Task 6.4:** Dynamic array manipulation: positive count, sum after last zero, and stable partition around value $2.0$.
 
 ## Execution Guide
@@ -45,72 +51,96 @@ dotnet test Lb6.Tests/Lb6.Tests.csproj
 
 ```mermaid
 flowchart TD
-    Start["Start Task 6.2: Search Max Even Index"] --> Input["Array a of size n, initialize bestIndex = -1, i = 0"]
-    Input --> CheckEnd{"i < n?"}
-    CheckEnd -- "Yes" --> CheckEven{"a[i] % 2 == 0?"}
-    CheckEven -- "Yes" --> Compare{"bestIndex == -1 || a[i] > a[bestIndex]?"}
-    Compare -- "Yes" --> UpdateBest["bestIndex = i"]
-    Compare -- "No" --> NextStep["i = i + 1"]
-    CheckEven -- "No" --> NextStep
-    UpdateBest --> NextStep
-    NextStep --> CheckEnd
-    CheckEnd -- "No" --> Result["Return bestIndex (-1 if no even elements)"]
-    Result --> Finish["End"]
+    Start["Start Task 6.3: Stream Array Input & Print"] --> ChooseMode{"Choose Paradigm: Iterative or Recursive?"}
+    
+    ChooseMode -- "Iterative" --> ItLoop["For i = 0 to n - 1"]
+    ItLoop --> ItPrompt["Optional prompt: a[i] = "]
+    ItPrompt --> ItRead["Read token via StreamTokenReader.ReadNextToken"]
+    ItRead --> ItCheck{"i == n - 1?"}
+    ItCheck -- "No" --> ItLoop
+    ItCheck -- "Yes" --> ItPrint["Format print array elements with fixed width"]
+    
+    ChooseMode -- "Recursive" --> RecCall["Recursive step at index i (initial: 0)"]
+    RecCall --> BaseCase{"i >= n?"}
+    BaseCase -- "Yes" --> Terminate["Return (stop recursion)"]
+    BaseCase -- "No" --> RecPrompt["Optional prompt: a[i] = "]
+    RecPrompt --> RecRead["Read token via StreamTokenReader.ReadNextToken"]
+    RecRead --> RecNext["Recursive call for index i + 1"]
+    RecNext --> BaseCase
+    
+    ItPrint --> Finish["End"]
+    Terminate --> RecPrint["Format print array elements recursively"]
+    RecPrint --> Finish
 ```
 
 ### Activity / State Diagram (`stateDiagram-v2`)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Initialization
-    Initialization --> ArrayGeneration: "Generate n elements in [-50, 50]"
-    ArrayGeneration --> DisplayInitial: "Formatted print to stdout (width = 5)"
-    DisplayInitial --> SearchState
+    [*] --> Setup
+    Setup --> StreamInjection: "Inject TextReader (Console.In or StringReader)"
+    StreamInjection --> InputPhase
     
-    state SearchState {
-        [*] --> EvaluateElement: "Check parity (a[i] % 2 == 0)"
-        EvaluateElement --> CandidateUpdate: "Update bestIndex if a[i] > a[bestIndex]"
-        CandidateUpdate --> CheckNext: "Next index i + 1"
-        EvaluateElement --> CheckNext: "Element is odd -> skip"
-        CheckNext --> EvaluateElement: "i < n"
-        CheckNext --> [*]: "i >= n"
+    state InputPhase {
+        [*] --> CheckBoundary: "Check index i < n"
+        CheckBoundary --> ReadToken: "StreamTokenReader extraction into a[i]"
+        ReadToken --> AdvanceIndex: "Increment index (loop or tail call)"
+        AdvanceIndex --> CheckBoundary
+        CheckBoundary --> [*]: "i >= n"
     }
     
-    SearchState --> OutputResult: "Return bestIndex (-1 sentinel if absent)"
-    OutputResult --> [*]
+    InputPhase --> FormatPrintPhase: "Pass populated array to output formatter"
+    
+    state FormatPrintPhase {
+        [*] --> FormatElement: "PadLeft(fieldWidth, a[i])"
+        FormatElement --> NextPrint: "Advance to i + 1"
+        NextPrint --> FormatElement: "i < n"
+        NextPrint --> [*]: "i >= n -> return formatted string"
+    }
+    
+    FormatPrintPhase --> [*]
 ```
 
 ### Class Diagram (`classDiagram`)
 
 ```mermaid
 classDiagram
-    class Task2Iterative {
-        +IsEven(value: int) bool
-        +InitArray(array: int[], minVal: int, maxVal: int) void
-        +PrintArray(array: int[], writer: TextWriter) void
-        +FormatArray(array: int[]) string
-        +FindMaxEvenIndex(array: int[]) int
+    class StreamTokenReader {
+        +ReadNextToken(reader: TextReader) string
     }
 
-    class Task2Recursive {
-        +IsEven(value: int) bool
-        +InitArrayRec(array: int[], minVal: int, maxVal: int, index: int) void
-        +PrintArrayRec(array: int[], writer: TextWriter, index: int) void
-        +FormatArrayRec(array: int[], index: int) string
-        +FindMaxEvenIndexRec(array: int[]) int
-        +FindMaxEvenIndexRec(array: int[], index: int, bestIndex: int) int
+    class Task3Iterative {
+        +InputArray(array: int[], reader: TextReader, writer: TextWriter) void
+        +PrintArray(array: int[], writer: TextWriter, fieldWidth: int) void
+        +FormatArray(array: int[], fieldWidth: int) string
+        +InputArrayTemplate~T~(array: T[], reader: TextReader, parser: Func~string, T~, writer: TextWriter) void
+        +PrintArrayTemplate~T~(array: T[], writer: TextWriter, fieldWidth: int) void
+        +FormatArrayTemplate~T~(array: T[], fieldWidth: int) string
+    }
+
+    class Task3Recursive {
+        +InputArrayRec(array: int[], reader: TextReader, index: int, writer: TextWriter) void
+        +PrintArrayRec(array: int[], writer: TextWriter, index: int, fieldWidth: int) void
+        +FormatArrayRec(array: int[], index: int, fieldWidth: int) string
+        +InputArrayTemplateRec~T~(array: T[], reader: TextReader, parser: Func~string, T~, index: int, writer: TextWriter) void
+        +PrintArrayTemplateRec~T~(array: T[], writer: TextWriter, index: int, fieldWidth: int) void
+        +FormatArrayTemplateRec~T~(array: T[], index: int, fieldWidth: int) string
     }
 
     class ILab6ArrayAlgorithms {
         <<interface>>
-        +FindMaximumEvenIndex(values: int[], recursive: bool) int
+        +InputIntArray(values: int[], input: TextReader, output: TextWriter, recursive: bool) void
+        +InputGenericArray~T~(values: T[], input: TextReader, output: TextWriter, parser: Func~string, T~, recursive: bool) void
     }
 
     class Lab6ArrayAlgorithms {
-        +FindMaximumEvenIndex(values: int[], recursive: bool) int
+        +InputIntArray(values: int[], input: TextReader, output: TextWriter, recursive: bool) void
+        +InputGenericArray~T~(values: T[], input: TextReader, output: TextWriter, parser: Func~string, T~, recursive: bool) void
     }
 
     ILab6ArrayAlgorithms <|.. Lab6ArrayAlgorithms : implements
-    Lab6ArrayAlgorithms ..> Task2Iterative : delegates
-    Lab6ArrayAlgorithms ..> Task2Recursive : delegates
+    Lab6ArrayAlgorithms ..> Task3Iterative : delegates
+    Lab6ArrayAlgorithms ..> Task3Recursive : delegates
+    Task3Iterative ..> StreamTokenReader : uses
+    Task3Recursive ..> StreamTokenReader : uses
 ```

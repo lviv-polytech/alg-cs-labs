@@ -46,20 +46,20 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
         ArgumentNullException.ThrowIfNull(input);
         ArgumentNullException.ThrowIfNull(output);
         if (values.Length == 0) throw new ArgumentException("Array size must be positive.", nameof(values));
-        if (recursive) InputIntRecursive(values, 0, input, output);
-        else
-            for (var i = 0; i < values.Length; i++)
-                values[i] = ReadIntElement(i, input, output);
+        if (recursive) Task3Recursive.InputArrayRec(values, input, 0, output);
+        else Task3Iterative.InputArray(values, input, output);
     }
 
     /// <summary>Reads typed values via a caller-supplied parser, demonstrating generic input.</summary>
     public void InputGenericArray<T>(T[] values, TextReader input, TextWriter output, Func<string, T> parser, bool recursive)
     {
-        ArgumentNullException.ThrowIfNull(values); ArgumentNullException.ThrowIfNull(input);
-        ArgumentNullException.ThrowIfNull(output); ArgumentNullException.ThrowIfNull(parser);
+        ArgumentNullException.ThrowIfNull(values);
+        ArgumentNullException.ThrowIfNull(input);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(parser);
         if (values.Length == 0) throw new ArgumentException("Array size must be positive.", nameof(values));
-        if (recursive) InputRecursive(values, 0, input, output, parser);
-        else for (var i = 0; i < values.Length; i++) values[i] = ReadElement(i, input, output, parser);
+        if (recursive) Task3Recursive.InputArrayTemplateRec(values, input, parser, 0, output);
+        else Task3Iterative.InputArrayTemplate(values, input, parser, output);
     }
 
     /// <summary>Counts positive values in the array.</summary>
@@ -105,32 +105,6 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
     }
 
 
-    private static void InputRecursive<T>(T[] values, int i, TextReader input, TextWriter output, Func<string, T> parser)
-    {
-        if (i >= values.Length) return;
-        values[i] = ReadElement(i, input, output, parser);
-        InputRecursive(values, i + 1, input, output, parser);
-    }
-
-    private static T ReadElement<T>(int i, TextReader input, TextWriter output, Func<string, T> parser)
-    {
-        output.Write($"a[{i}] = ");
-        return parser(input.ReadLine() ?? throw new EndOfStreamException("Input ended before all array elements were read."));
-    }
-
-    private static int ReadIntElement(int i, TextReader input, TextWriter output)
-    {
-        output.Write($"a[{i}] = ");
-        var text = input.ReadLine() ?? throw new EndOfStreamException("Input ended before all array elements were read.");
-        return int.TryParse(text, out var value) ? value : throw new FormatException("Expected an integer.");
-    }
-
-    private static void InputIntRecursive(int[] values, int i, TextReader input, TextWriter output)
-    {
-        if (i >= values.Length) return;
-        values[i] = ReadIntElement(i, input, output);
-        InputIntRecursive(values, i + 1, input, output);
-    }
 
     private static int CountPositiveRecursive(double[] values, int i) =>
         i == values.Length ? 0 : (values[i] > 0 ? 1 : 0) + CountPositiveRecursive(values, i + 1);
