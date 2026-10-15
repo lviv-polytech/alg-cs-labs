@@ -12,7 +12,15 @@ Modular .NET solution demonstrating one-dimensional array algorithms implemented
      - Cumulative sum: $80 \le S \le 1825$.
      - Execution sequence: $\text{Generate} \to \text{Print} \to (\text{Count}, \text{Sum}) \to \text{Zero} \to \text{Print}$.
    - **Decomposition (Single Responsibility):** Independent pure methods in `Task1Iterative` and `Task1Recursive` (`GenerateArray`, `PrintArray`, `CountElements`, `SumElements`, `ZeroElements`).
-2. **Task 6.2:** Search for the first index of the maximum even integer (returns `-1` if absent).
+
+2. **Task 6.2 (Variant 17): Search for the Index of the Maximum Even Element**
+   - **Data Domain:** One-dimensional array $a = (a_0, a_1, \dots, a_{n-1})$ of arbitrary dimension $n \ge 1$ with $a_i \in [-50, 50]$.
+   - **Evenness Predicate:** $P(x) \iff (x \bmod 2 = 0)$ (correctly handles positive evens, negative evens, and zero: $0 \bmod 2 = 0$).
+   - **Solution Existence & Tie-Breaking:**
+     - If no even numbers exist ($I_{\text{even}} = \varnothing$), returns sentinel value $k^* = -1$.
+     - If duplicates of the maximum even value exist, returns the first occurrence (smallest index): $k^* = \min \{ i \in I_{\text{even}} \mid a_i = \max_{j \in I_{\text{even}}} a_j \}$.
+   - **Decomposition (Single Responsibility):** Independent pure methods in `Task2Iterative` and `Task2Recursive` (`IsEven`, `InitArray`, `PrintArray`, `FindMaxEvenIndex` and recursive equivalents `InitArrayRec`, `PrintArrayRec`, `FindMaxEvenIndexRec`).
+
 3. **Task 6.3:** Ordinary and generic input handlers reading typed values from `TextReader`.
 4. **Task 6.4:** Dynamic array manipulation: positive count, sum after last zero, and stable partition around value $2.0$.
 
@@ -37,20 +45,17 @@ dotnet test Lb6.Tests/Lb6.Tests.csproj
 
 ```mermaid
 flowchart TD
-    Start["Start Task 6.1: Variant 17"] --> Gen["Generate array: 25 integers in range [4, 73]"]
-    Gen --> PrintInit["Print initial formatted array: width = 4"]
-    PrintInit --> ProcessLoop["Iterate / Recurse over indices: i = 0 .. 24"]
-    ProcessLoop --> CheckMatch{"(r[i] % 6 == 0) || (i % 5 != 0)?"}
-    CheckMatch -- "Yes" --> Accumulate["Increment count K, accumulate sum S"]
-    CheckMatch -- "No" --> Pass["Retain element intact"]
-    Accumulate --> Next["Advance to index i + 1"]
-    Pass --> Next
-    Next --> More{"i < 25?"}
-    More -- "Yes" --> CheckMatch
-    More -- "No" --> ZeroStep["Zero out matching elements in-place"]
-    ZeroStep --> PrintResults["Print Count K and Sum S"]
-    PrintResults --> PrintFinal["Print modified formatted array (with zeros)"]
-    PrintFinal --> Finish["End"]
+    Start["Start Task 6.2: Search Max Even Index"] --> Input["Array a of size n, initialize bestIndex = -1, i = 0"]
+    Input --> CheckEnd{"i < n?"}
+    CheckEnd -- "Yes" --> CheckEven{"a[i] % 2 == 0?"}
+    CheckEven -- "Yes" --> Compare{"bestIndex == -1 || a[i] > a[bestIndex]?"}
+    Compare -- "Yes" --> UpdateBest["bestIndex = i"]
+    Compare -- "No" --> NextStep["i = i + 1"]
+    CheckEven -- "No" --> NextStep
+    UpdateBest --> NextStep
+    NextStep --> CheckEnd
+    CheckEnd -- "No" --> Result["Return bestIndex (-1 if no even elements)"]
+    Result --> Finish["End"]
 ```
 
 ### Activity / State Diagram (`stateDiagram-v2`)
@@ -58,54 +63,54 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> Initialization
-    Initialization --> ArrayGeneration: "Generate 25 elements in [4, 73]"
-    ArrayGeneration --> DisplayInitial: "Formatted print to stdout"
-    DisplayInitial --> Processing
+    Initialization --> ArrayGeneration: "Generate n elements in [-50, 50]"
+    ArrayGeneration --> DisplayInitial: "Formatted print to stdout (width = 5)"
+    DisplayInitial --> SearchState
     
-    state Processing {
-        [*] --> CountElements: "Count matching elements (iterative / recursive)"
-        CountElements --> SumElements: "Sum matching elements (iterative / recursive)"
-        SumElements --> ZeroElements: "In-place zeroing after metrics calculated"
-        ZeroElements --> [*]
+    state SearchState {
+        [*] --> EvaluateElement: "Check parity (a[i] % 2 == 0)"
+        EvaluateElement --> CandidateUpdate: "Update bestIndex if a[i] > a[bestIndex]"
+        CandidateUpdate --> CheckNext: "Next index i + 1"
+        EvaluateElement --> CheckNext: "Element is odd -> skip"
+        CheckNext --> EvaluateElement: "i < n"
+        CheckNext --> [*]: "i >= n"
     }
     
-    Processing --> DisplayMetrics: "Print K and S"
-    DisplayMetrics --> DisplayModified: "Formatted print of modified array"
-    DisplayModified --> [*]
+    SearchState --> OutputResult: "Return bestIndex (-1 sentinel if absent)"
+    OutputResult --> [*]
 ```
 
 ### Class Diagram (`classDiagram`)
 
 ```mermaid
 classDiagram
-    class Task1Result {
-        <<readonly record struct>>
-        +Count: int
-        +Sum: int
-    }
-
-    class Task1Iterative {
-        +IsSelected(value: int, index: int) bool
-        +GenerateArray(array: int[], low: int, high: int) void
+    class Task2Iterative {
+        +IsEven(value: int) bool
+        +InitArray(array: int[], minVal: int, maxVal: int) void
         +PrintArray(array: int[], writer: TextWriter) void
         +FormatArray(array: int[]) string
-        +CountElements(array: int[]) int
-        +SumElements(array: int[]) int
-        +ZeroElements(array: int[]) void
-        +ProcessSelection(array: int[]) Task1Result
+        +FindMaxEvenIndex(array: int[]) int
     }
 
-    class Task1Recursive {
-        +IsSelected(value: int, index: int) bool
-        +GenerateArrayRec(array: int[], low: int, high: int, index: int) void
+    class Task2Recursive {
+        +IsEven(value: int) bool
+        +InitArrayRec(array: int[], minVal: int, maxVal: int, index: int) void
         +PrintArrayRec(array: int[], writer: TextWriter, index: int) void
         +FormatArrayRec(array: int[], index: int) string
-        +CountElementsRec(array: int[], index: int) int
-        +SumElementsRec(array: int[], index: int) int
-        +ZeroElementsRec(array: int[], index: int) void
-        +ProcessSelectionRec(array: int[], index: int) Task1Result
+        +FindMaxEvenIndexRec(array: int[]) int
+        +FindMaxEvenIndexRec(array: int[], index: int, bestIndex: int) int
     }
 
-    Task1Iterative --> Task1Result : creates
-    Task1Recursive --> Task1Result : creates
+    class ILab6ArrayAlgorithms {
+        <<interface>>
+        +FindMaximumEvenIndex(values: int[], recursive: bool) int
+    }
+
+    class Lab6ArrayAlgorithms {
+        +FindMaximumEvenIndex(values: int[], recursive: bool) int
+    }
+
+    ILab6ArrayAlgorithms <|.. Lab6ArrayAlgorithms : implements
+    Lab6ArrayAlgorithms ..> Task2Iterative : delegates
+    Lab6ArrayAlgorithms ..> Task2Recursive : delegates
 ```

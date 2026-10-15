@@ -36,7 +36,7 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
     public int FindMaximumEvenIndex(int[] values, bool recursive)
     {
         ArgumentNullException.ThrowIfNull(values);
-        return recursive ? FindMaximumEvenRecursive(values, 0, -1) : FindMaximumEvenIterative(values);
+        return recursive ? Task2Recursive.FindMaxEvenIndexRec(values, 0, -1) : Task2Iterative.FindMaxEvenIndex(values);
     }
 
     /// <summary>Reads array values using the dedicated int overload, iteratively or recursively.</summary>
@@ -104,20 +104,6 @@ internal sealed class Lab6ArrayAlgorithms : ILab6ArrayAlgorithms
         Array.Copy(output, values, values.Length);
     }
 
-    private static int FindMaximumEvenIterative(int[] values)
-    {
-        var best = -1;
-        for (var i = 0; i < values.Length; i++)
-            if (values[i] % 2 == 0 && (best < 0 || values[i] > values[best])) best = i;
-        return best;
-    }
-
-    private static int FindMaximumEvenRecursive(int[] values, int i, int best)
-    {
-        if (i == values.Length) return best;
-        if (values[i] % 2 == 0 && (best < 0 || values[i] > values[best])) best = i;
-        return FindMaximumEvenRecursive(values, i + 1, best);
-    }
 
     private static void InputRecursive<T>(T[] values, int i, TextReader input, TextWriter output, Func<string, T> parser)
     {

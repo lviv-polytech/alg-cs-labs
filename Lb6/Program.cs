@@ -48,13 +48,32 @@ try
         }
         case "6.2":
         {
+            Console.WriteLine("=== Task 6.2: Search for Maximum Even Element Index (Variant 17) ===");
             var n = ReadInt("n (>0): ");
             if (n <= 0) throw new ArgumentOutOfRangeException(nameof(n), "n must be positive.");
-            var random = new Random();
-            var values = Enumerable.Range(0, n).Select(_ => random.Next(-50, 51)).ToArray();
-            Console.WriteLine(string.Join(" ", values));
-            var index = algorithms.FindMaximumEvenIndex(values, recursive);
-            Console.WriteLine(index < 0 ? "No even elements." : $"First maximum even index: {index}; value: {values[index]}");
+            var values = new int[n];
+            if (recursive)
+            {
+                Console.WriteLine("[Recursive approach]");
+                Lpnu.Lb6.Task2Recursive.InitArrayRec(values);
+                Console.WriteLine("Array elements:");
+                Lpnu.Lb6.Task2Recursive.PrintArrayRec(values, Console.Out);
+                var index = Lpnu.Lb6.Task2Recursive.FindMaxEvenIndexRec(values);
+                Console.WriteLine(index < 0
+                    ? "Result: No even elements found in the array."
+                    : $"Result: Max Even Value = {values[index]} at Index = {index}");
+            }
+            else
+            {
+                Console.WriteLine("[Iterative approach]");
+                Lpnu.Lb6.Task2Iterative.InitArray(values);
+                Console.WriteLine("Array elements:");
+                Lpnu.Lb6.Task2Iterative.PrintArray(values, Console.Out);
+                var index = Lpnu.Lb6.Task2Iterative.FindMaxEvenIndex(values);
+                Console.WriteLine(index < 0
+                    ? "Result: No even elements found in the array."
+                    : $"Result: Max Even Value = {values[index]} at Index = {index}");
+            }
             break;
         }
         case "6.3":
