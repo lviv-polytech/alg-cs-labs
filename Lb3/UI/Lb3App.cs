@@ -12,6 +12,7 @@ public class Lb3App
     private readonly ITask31Calculator _task31Calculator;
     private readonly ITask32Calculator _task32Calculator;
     private readonly ITask33Calculator _task33Calculator;
+    private readonly ITask34Calculator _task34Calculator;
     private readonly IConsoleInputReader _inputReader;
     private readonly TextWriter _output;
 
@@ -22,6 +23,7 @@ public class Lb3App
         ITask31Calculator? task31 = null,
         ITask32Calculator? task32 = null,
         ITask33Calculator? task33 = null,
+        ITask34Calculator? task34 = null,
         IConsoleInputReader? inputReader = null,
         TextWriter? output = null)
     {
@@ -29,6 +31,7 @@ public class Lb3App
         _task31Calculator = task31 ?? Lb3ServiceFactory.CreateTask31Calculator();
         _task32Calculator = task32 ?? Lb3ServiceFactory.CreateTask32Calculator();
         _task33Calculator = task33 ?? Lb3ServiceFactory.CreateTask33Calculator();
+        _task34Calculator = task34 ?? Lb3ServiceFactory.CreateTask34Calculator();
         _inputReader = inputReader ?? new ConsoleInputReader(Console.In, _output);
     }
 
@@ -43,7 +46,8 @@ public class Lb3App
             _output.WriteLine("1 - Task 3.1: Single-variable piecewise function Y(m)");
             _output.WriteLine("2 - Task 3.2: Parameterized function F(x) (short vs full if)");
             _output.WriteLine("3 - Task 3.3: Graph-based piecewise function y(x, R)");
-            _output.WriteLine("4 - Run all tasks sequentially");
+            _output.WriteLine("4 - Task 3.4: Target region hit detection (point in shaded area)");
+            _output.WriteLine("5 - Run all tasks sequentially");
             _output.WriteLine("0 - Exit");
 
             var choice = _inputReader.ReadLine("Select task: ")?.Trim();
@@ -64,11 +68,16 @@ public class Lb3App
                     RunTask33();
                     break;
                 case "4":
+                    RunTask34();
+                    break;
+                case "5":
                     RunTask31();
                     _output.WriteLine();
                     RunTask32();
                     _output.WriteLine();
                     RunTask33();
+                    _output.WriteLine();
+                    RunTask34();
                     break;
                 default:
                     _output.WriteLine("Invalid selection. Please choose an option from the menu.");
@@ -159,6 +168,34 @@ public class Lb3App
         catch (Exception ex)
         {
             _output.WriteLine($"Error evaluating Task 3.3: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Interactive routine for Task 3.4: determining if point (x, y) falls within the shaded target region.
+    /// </summary>
+    public void RunTask34()
+    {
+        _output.WriteLine("--- Task 3.4: Target Region Hit Detection ---");
+        var x = _inputReader.ReadDouble("Enter point coordinate x: ");
+        if (!x.HasValue) return;
+
+        var y = _inputReader.ReadDouble("Enter point coordinate y: ");
+        if (!y.HasValue) return;
+
+        var r = _inputReader.ReadDouble("Enter radius parameter R (R > 0): ", val => val > 0, "R must be strictly positive (R > 0).");
+        if (!r.HasValue) return;
+
+        try
+        {
+            var result = _task34Calculator.Calculate(x.Value, y.Value, r.Value);
+            _output.WriteLine(result.Message);
+            _output.WriteLine($"Hit detected: {result.IsHit}");
+            _output.WriteLine($"Target zone: {result.Zone}");
+        }
+        catch (Exception ex)
+        {
+            _output.WriteLine($"Error evaluating Task 3.4: {ex.Message}");
         }
     }
 }

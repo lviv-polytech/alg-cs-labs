@@ -5,3 +5,5 @@ riderModule.iml
 *.iml
 .idea/
 /_ReSharper.Caches/
+.local/*
+!.local/history.md

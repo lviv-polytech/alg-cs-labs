@@ -6,7 +6,7 @@
         <RootNamespace>alg_cs_labs</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <DefaultItemExcludes>$(DefaultItemExcludes);CommonUtils/**;Lb1/**;Lb2/**;Lb3/**;Lb1.Tests/**;Lb2.Tests/**;Lb3.Tests/**</DefaultItemExcludes>
+        <DefaultItemExcludes>$(DefaultItemExcludes);CommonUtils/**;Lb1/**;Lb2/**;Lb3/**;Lb4/**;Lb5/**;Lb6/**;Lb7/**;Lb1.Tests/**;Lb2.Tests/**;Lb3.Tests/**;Lb4.Tests/**;Lb5.Tests/**;Lb6.Tests/**;Lb7.Tests/**</DefaultItemExcludes>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,6 +14,14 @@
         <ProjectReference Include="Lb1\Lb1.csproj" />
         <ProjectReference Include="Lb2\Lb2.csproj" />
         <ProjectReference Include="Lb3\Lb3.csproj" />
+        <ProjectReference Include="Lb4\Lb4.csproj" />
+        <ProjectReference Include="Lb5\Lb5.csproj" />
+        <ProjectReference Include="Lb6\Lb6.csproj" />
+        <ProjectReference Include="Lb7\Lb7.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include=".local\tasks\" />
     </ItemGroup>
 
 </Project>
