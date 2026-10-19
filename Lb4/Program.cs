@@ -39,14 +39,20 @@ try
         case "4.7":
             var rows = calculator.TabulateLogSeries(ReadDouble("X start: "), ReadDouble("X end: "),
                 ReadDouble("dX: "), ReadDouble("epsilon: "));
-            Console.WriteLine("+------------+------------+------------+--------+");
-            Console.WriteLine("| x          | ln(x)      | series     | terms  |");
-            Console.WriteLine("+------------+------------+------------+--------+");
+            const string logBorder = "+--------------+--------------------+--------------------+--------------+";
+            Console.WriteLine(logBorder);
+            Console.WriteLine($"| {"      Taylor Series Tabulation for ln(x) (Variant 17)",-69} |");
+            Console.WriteLine(logBorder);
+            Console.WriteLine($"| {"x",12} | {"ln(x) (Exact)",18} | {"Taylor Sum",18} | {"Terms",12} |");
+            Console.WriteLine(logBorder);
             foreach (var row in rows)
+            {
+                var exactStr = row.X > 0 ? row.X.ToString("F0") is var _ && double.IsFinite(Math.Log(row.X)) ? Math.Log(row.X).ToString("F8", CultureInfo.InvariantCulture) : "undefined" : "undefined";
                 Console.WriteLine(row.Sum is null
-                    ? $"| {row.X,10:F2} | {Math.Log(row.X),10:F5} | out of convergence domain |"
-                    : $"| {row.X,10:F2} | {Math.Log(row.X),10:F5} | {row.Sum.Value,10:F5} | {row.Terms,6} |");
-            Console.WriteLine("+------------+------------+------------+--------+");
+                    ? $"| {row.X,12:F4} | {exactStr,18} | {"outside domain",18} | {"-",12} |"
+                    : $"| {row.X,12:F4} | {exactStr,18} | {row.Sum.Value,18:F8} | {row.Terms,12} |");
+            }
+            Console.WriteLine(logBorder);
             break;
         default:
             Console.WriteLine("Unknown task.");
@@ -72,12 +78,17 @@ static int ReadInt(string prompt)
 
 static void PrintRows(IReadOnlyList<TableRow> rows, string valueHeading)
 {
-    Console.WriteLine($"+------------+------------+\n| x          | {valueHeading,-10} |\n+------------+------------+");
+    const string border = "+--------------+--------------------+";
+    Console.WriteLine(border);
+    Console.WriteLine($"| {"    Function Tabulation Table",-33} |");
+    Console.WriteLine(border);
+    Console.WriteLine($"| {"x",12} | {valueHeading,18} |");
+    Console.WriteLine(border);
     foreach (var row in rows)
         Console.WriteLine(double.IsNaN(row.Value)
-            ? $"| {row.X,10:F2} | {"undefined",10} |"
-            : $"| {row.X,10:F2} | {row.Value,10:F3} |");
-    Console.WriteLine("+------------+------------+");
+            ? $"| {row.X,12:F4} | {"undefined",18} |"
+            : $"| {row.X,12:F4} | {row.Value,18:F6} |");
+    Console.WriteLine(border);
 }
 
 static void ExecuteTask45(ITargetCalculator target)

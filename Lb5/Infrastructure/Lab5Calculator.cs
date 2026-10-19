@@ -19,7 +19,20 @@ internal sealed class Lab5Calculator : ILab5Calculator
     }
 
     /// <summary>
-    /// Sums ln(x)=q+q^2/2+... using a[n]=a[n-1]*q*n/(n+1), q=(x-1)/x.
+    /// Computes the next Taylor series term a[n] from a[n-1] using the recurrence relation:
+    /// a[n] = a[n-1] * ((x - 1) / x) * (n / (n + 1.0)) for n &gt;= 1, x != 0.
+    /// </summary>
+    public double CalculateNextLogTerm(double x, int n, double previousTerm)
+    {
+        EnsureFinite(x, nameof(x)); EnsureFinite(previousTerm, nameof(previousTerm));
+        if (Math.Abs(x) < 1e-15) throw new ArgumentOutOfRangeException(nameof(x), "x must not be zero.");
+        if (n < 1) throw new ArgumentOutOfRangeException(nameof(n), "Recurrent index n must be >= 1.");
+        var q = (x - 1.0) / x;
+        return previousTerm * q * (n / (n + 1.0));
+    }
+
+    /// <summary>
+    /// Sums ln(x)=q+q^2/2+... using CalculateNextLogTerm(x, n, term), q=(x-1)/x.
     /// The initial term is always included; the first term below epsilon is included too.
     /// The specified convergence domain is x&gt;0.5.
     /// </summary>
@@ -28,18 +41,53 @@ internal sealed class Lab5Calculator : ILab5Calculator
         EnsureFinite(x, nameof(x));
         if (x <= 0.5) throw new ArgumentOutOfRangeException(nameof(x), "The series converges only for x > 0.5.");
         if (!double.IsFinite(epsilon) || epsilon <= 0) throw new ArgumentOutOfRangeException(nameof(epsilon));
-        var q = (x - 1) / x;
-        var term = q;
-        var sum = 0.0;
-        var terms = 0;
-        do
+        var term = (x - 1.0) / x;
+        var sum = term;
+        var terms = 1;
+        var n = 0;
+        while (Math.Abs(term) >= epsilon)
         {
+            if (terms >= MaximumSeriesTerms)
+                throw new InvalidOperationException("The series did not converge within the iteration limit.");
+            n++;
+            term = CalculateNextLogTerm(x, n, term);
             sum += term;
             terms++;
-            if (Math.Abs(term) < epsilon) return new SeriesResult(sum, terms);
-            term *= q * terms / (terms + 1.0);
-        } while (terms < MaximumSeriesTerms);
-        throw new InvalidOperationException("The series did not converge within the iteration limit.");
+        }
+        return new SeriesResult(sum, terms);
+    }
+
+    /// <summary>
+    /// Tabulates ln(x) and its Taylor series approximation over [start, end] with step dx.
+    /// Points with x &lt;= 0.5 have null SeriesSum and 0 Terms; points with x &lt;= 0 also have null ExactValue.
+    /// </summary>
+    public IReadOnlyList<LogTableRow> TabulateLogSeries(double start, double end, double step, double epsilon)
+    {
+        EnsureFinite(start, nameof(start)); EnsureFinite(end, nameof(end));
+        EnsureFinite(step, nameof(step)); EnsureFinite(epsilon, nameof(epsilon));
+        if (start > end) throw new ArgumentOutOfRangeException(nameof(start), "Require start <= end.");
+        if (step <= 0) throw new ArgumentOutOfRangeException(nameof(step), "Require step > 0.");
+        if (epsilon <= 0) throw new ArgumentOutOfRangeException(nameof(epsilon), "Require epsilon > 0.");
+
+        var rows = new List<LogTableRow>();
+        for (var i = 0; ; i++)
+        {
+            var x = start + i * step;
+            if (x > end + 1e-9) break;
+            if (Math.Abs(x) < 1e-12) x = 0.0;
+
+            double? exact = x > 0 ? Math.Log(x) : null;
+            if (x <= 0.5)
+            {
+                rows.Add(new LogTableRow(x, exact, null, 0));
+            }
+            else
+            {
+                var series = CalculateLogSeries(x, epsilon);
+                rows.Add(new LogTableRow(x, exact, series.Sum, series.Terms));
+            }
+        }
+        return rows;
     }
 
     /// <summary>

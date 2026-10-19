@@ -1,4 +1,5 @@
 using System.Globalization;
+using Lpnu.Lb5.Core;
 using Lpnu.Lb5.Infrastructure;
 
 var calculator = Lab5ServiceFactory.CreateCalculator();
@@ -14,25 +15,12 @@ try
         case "5.2":
             var start = ReadDouble("X start: "); var end = ReadDouble("X end: ");
             var step = ReadDouble("dX: "); var epsilon = ReadDouble("epsilon: ");
-            if (start > end || step <= 0) throw new ArgumentOutOfRangeException(nameof(step), "Require X start <= X end and dX > 0.");
-            Console.WriteLine("| x | ln(x) | series | terms |");
-            for (var i = 0; ; i++)
-            {
-                var x = start + i * step;
-                if (x > end + 1e-9) break;
-                if (x <= 0.5) Console.WriteLine($"{x:F2} | {Math.Log(x):F6} | out of convergence domain |");
-                else
-                {
-                    var series = calculator.CalculateLogSeries(x, epsilon);
-                    Console.WriteLine($"{x:F2} | {Math.Log(x):F6} | {series.Sum:F6} | {series.Terms}");
-                }
-            }
+            var logRows = calculator.TabulateLogSeries(start, end, step, epsilon);
+            PrintLogTable(logRows);
             break;
         case "5.3":
             var table = calculator.TabulateHelperExpression(ReadDouble("g start: "), ReadDouble("g end: "), ReadInt("n (>=1): "));
-            Console.WriteLine("| g | E(g) |");
-            foreach (var row in table)
-                Console.WriteLine(row.Value is null ? $"{row.Argument:F3} | undefined" : $"{row.Argument:F3} | {row.Value.Value:F8}");
+            PrintHelperTable(table);
             break;
         case "5.4":
             var count = ReadInt("N (1..5000): ");
@@ -57,6 +45,51 @@ catch (ArgumentException ex) { Console.WriteLine($"Input error: {ex.Message}"); 
 catch (FormatException ex) { Console.WriteLine($"Input error: {ex.Message}"); }
 catch (InvalidOperationException ex) { Console.WriteLine($"Calculation error: {ex.Message}"); }
 
+static void PrintLogTable(IReadOnlyList<LogTableRow> rows)
+{
+    const string border = "+--------------+--------------------+--------------------+--------------+";
+    Console.WriteLine(border);
+    Console.WriteLine($"| {"      Taylor Series Tabulation for ln(x) (Variant 17)",-69} |");
+    Console.WriteLine(border);
+    Console.WriteLine($"| {"x",12} | {"ln(x) (Exact)",18} | {"Taylor Sum",18} | {"Terms",12} |");
+    Console.WriteLine(border);
+    foreach (var row in rows)
+    {
+        var xCell = FormatCell(row.Argument, 12, 4);
+        var exactCell = row.ExactValue.HasValue ? FormatCell(row.ExactValue.Value, 18, 8) : "undefined";
+        var sumCell = row.SeriesSum.HasValue ? FormatCell(row.SeriesSum.Value, 18, 8) : "outside domain";
+        var termsCell = row.SeriesSum.HasValue ? row.Terms.ToString(CultureInfo.InvariantCulture) : "-";
+        Console.WriteLine($"| {xCell,12} | {exactCell,18} | {sumCell,18} | {termsCell,12} |");
+    }
+    Console.WriteLine(border);
+}
+
+static void PrintHelperTable(IReadOnlyList<TableRow> rows)
+{
+    const string border = "+--------------+--------------------+";
+    Console.WriteLine(border);
+    Console.WriteLine($"| {"    Function Tabulation Table",-33} |");
+    Console.WriteLine(border);
+    Console.WriteLine($"| {"g",12} | {"E(g)",18} |");
+    Console.WriteLine(border);
+    foreach (var row in rows)
+    {
+        var gCell = FormatCell(row.Argument, 12, 4);
+        var valCell = row.Value.HasValue ? FormatCell(row.Value.Value, 18, 8) : "undefined";
+        Console.WriteLine($"| {gCell,12} | {valCell,18} |");
+    }
+    Console.WriteLine(border);
+}
+
+static string FormatCell(double value, int width, int precision)
+{
+    if (!double.IsFinite(value)) return "undefined";
+    var fixedStr = value.ToString($"F{precision}", CultureInfo.InvariantCulture);
+    if (fixedStr.Length <= width) return fixedStr;
+    var sciPrecision = Math.Max(1, width - 7);
+    return value.ToString($"E{sciPrecision}", CultureInfo.InvariantCulture);
+}
+
 static double ReadDouble(string prompt)
 {
     Console.Write(prompt);
@@ -70,3 +103,4 @@ static int ReadInt(string prompt)
     Console.Write(prompt);
     return int.TryParse(Console.ReadLine(), out var value) ? value : throw new FormatException("Enter an integer.");
 }
+
