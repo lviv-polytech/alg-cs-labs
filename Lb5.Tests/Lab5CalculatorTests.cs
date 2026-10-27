@@ -6,6 +6,42 @@ public class Lab5CalculatorTests
 {
     private readonly Lpnu.Lb5.Core.ILab5Calculator _calculator = Lab5ServiceFactory.CreateCalculator();
 
+    [Fact]
+    public void Calculate_WithGivenSampleValues_ReturnsExpectedResult()
+    {
+        // 1. Вхідні параметри
+        double test_x = 2.0;
+        double test_y = 6.0;
+
+        // 2. Очікуваний результат: (2^2 + 6) / 2 = 5.0
+        double expected = 5.0;
+
+        // 3. Фактичний виклик піддослідної функції
+        double actual = _calculator.Calculate(test_x, test_y);
+
+        // 4. Твердження рівності (похибка дельта 0.00001 -> 5 десяткових знаків)
+        Assert.Equal(expected, actual, 5);
+    }
+
+    [Theory]
+    [InlineData(0.0, 0.0, 0.0)]
+    [InlineData(-2.0, 6.0, 5.0)]
+    [InlineData(3.0, 1.0, 5.0)]
+    [InlineData(1.5, 2.5, 2.375)]
+    [InlineData(-3.0, -1.0, 4.0)]
+    public void Calculate_WithVariousInputs_ComputesCorrectly(double x, double y, double expected)
+    {
+        var actual = _calculator.Calculate(x, y);
+        Assert.Equal(expected, actual, 5);
+    }
+
+    [Fact]
+    public void Calculate_WithNonFiniteInputs_ThrowsArgumentOutOfRangeException()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => _calculator.Calculate(double.NaN, 1.0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _calculator.Calculate(1.0, double.PositiveInfinity));
+    }
+
     [Theory]
     [InlineData(1, 1, 1.25)]
     [InlineData(0, 0, 1)]

@@ -8,6 +8,20 @@ internal sealed class Lab5Calculator : ILab5Calculator
     private const int MaximumSeriesTerms = 1_000_000;
 
     /// <summary>
+    /// Introductory calculation for Task 5.0: (x^2 + y) / 2.0.
+    /// Pure computation isolated from console I/O for standalone unit testing.
+    /// </summary>
+    /// <param name="x">First argument x.</param>
+    /// <param name="y">Second argument y.</param>
+    /// <returns>Computed value (x * x + y) / 2.0.</returns>
+    public double Calculate(double x, double y)
+    {
+        EnsureFinite(x, nameof(x));
+        EnsureFinite(y, nameof(y));
+        return (x * x + y) / 2.0;
+    }
+
+    /// <summary>
     /// Evaluates (h(a,b,1)+h(1,a,b))/(1+h(a^2+b^2,1,0)),
     /// where h(x,y,z)=(x+y+z)/(x^2+y^2+z^2). Each h denominator is positive
     /// because every invocation has at least one argument equal to one.

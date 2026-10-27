@@ -3,12 +3,15 @@ using Lpnu.Lb5.Core;
 using Lpnu.Lb5.Infrastructure;
 
 var calculator = Lab5ServiceFactory.CreateCalculator();
-Console.WriteLine("Lab 5 — select 5.1, 5.2, 5.3, 5.4, or 5.5:");
+Console.WriteLine("Lab 5 — select 5.0, 5.1, 5.2, 5.3, 5.4, or 5.5:");
 Console.Write("> ");
 try
 {
     switch (Console.ReadLine())
     {
+        case "5.0" or "0":
+            Console.WriteLine($"Result = {calculator.Calculate(ReadDouble("a = "), ReadDouble("b = ")):G10}");
+            break;
         case "5.1":
             Console.WriteLine($"R = {calculator.CalculateExpression(ReadDouble("a: "), ReadDouble("b: ")):F10}");
             break;
